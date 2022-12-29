@@ -2,10 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-# This file contains k8s yaml files generated from ingress-nginx helm
-# repository. For more details, visit https://kubernetes.github.io/ingress-nginx/
-
-"""TODO"""
+"""DOCSTRING"""
 
 import hashlib
 
@@ -18,18 +15,18 @@ from torque import v1
 
 
 _INIT_SQL = jinja2.Template("""
-{%- for user, password in users.items() %}
+{%- for user, password in users.items() | sort %}
 {%- if user != 'postgres' -%}
 create user {{user}} with createdb createrole password '{{password}}';
 {% endif -%}
 {%- endfor %}
-{% for database, users in databases.items() %}
+{% for database, users in databases.items() | sort %}
 {%- if database != 'postgres' -%}
 create database {{database}};
 {% endif -%}
 {%- endfor %}
-{% for database, users in databases.items() -%}
-{% for user in users -%}
+{% for database, users in databases.items() | sort -%}
+{% for user in users | sort -%}
 {%- if user != 'postgres' -%}
 grant all privileges on database {{database}} to {{user}};
 {% endif -%}
@@ -39,11 +36,11 @@ grant all privileges on database {{database}} to {{user}};
 
 
 class V1Provider(v1.provider.Provider):
-    """TODO"""
+    """DOCSTRING"""
 
 
 class V1Implementation(v1.bond.Bond):
-    """TODO"""
+    """DOCSTRING"""
 
     PROVIDER = V1Provider
     IMPLEMENTS = postgres.V1ImplementationInterface
@@ -59,7 +56,7 @@ class V1Implementation(v1.bond.Bond):
 
     @classmethod
     def on_requirements(cls) -> dict[str, object]:
-        """TODO"""
+        """DOCSTRING"""
 
         return {
             "k8s": {
@@ -84,7 +81,7 @@ class V1Implementation(v1.bond.Bond):
             p.add_hook("apply-objects", self._apply)
 
     def _create_access(self, database: str, user: str):
-        """TODO"""
+        """DOCSTRING"""
 
         with self.context as ctx:
             if database not in self._databases:
@@ -98,7 +95,7 @@ class V1Implementation(v1.bond.Bond):
             return self._users[user]
 
     def _apply(self):
-        """TODO"""
+        """DOCSTRING"""
 
         image = f"postgres:{self.configuration['version']}"
         password = self._create_access("postgres", "postgres")
@@ -238,14 +235,14 @@ class V1Implementation(v1.bond.Bond):
         })
 
     def auth(self, database: str, user: str) -> v1.utils.Future[postgres.Authorization]:
-        """TODO"""
+        """DOCSTRING"""
 
         return v1.utils.Future(postgres.Authorization(database,
                                                       user,
                                                       self._create_access(database, user)))
 
     def service(self) -> postgres.Service:
-        """TODO"""
+        """DOCSTRING"""
 
         host = f"{self.name}.{self._namespace}"
 
